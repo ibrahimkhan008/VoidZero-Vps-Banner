@@ -1,29 +1,45 @@
 #!/bin/bash
 
-# Function to show spinner while tasks run
-spinner() {
-  local pid=$!
-  local spin='-\|/'
+# Define setup steps
+STEPS=(
+  "apt update -y > /dev/null 2>&1"
+  "DEBIAN_FRONTEND=noninteractive apt upgrade -yq > /dev/null 2>&1"
+  "apt install -y neofetch figlet lolcat > /dev/null 2>&1"
+  "rm -f /etc/motd"
+  "sed -i 's/^#*PrintMotd.*/PrintMotd yes/' /etc/ssh/sshd_config"
+  "systemctl restart ssh > /dev/null 2>&1"
+  "rm -f /etc/profile.d/voidzero-banner.sh"
+)
+
+TOTAL=${#STEPS[@]}
+
+# Spinner with % in same line
+run_with_progress() {
   local i=0
-  while kill -0 $pid 2>/dev/null; do
-    i=$(( (i+1) %4 ))
-    printf "\r\e[1;36m🌐 Please wait... Setting up your VoidZero VPS ${spin:$i:1} \e[0m"
-    sleep 0.1
+  local percent=0
+  local spin_chars='-\|/'
+
+  for cmd in "${STEPS[@]}"; do
+    bash -c "$cmd" &
+    pid=$!
+
+    # While command runs, show spinner and % on same line
+    while kill -0 $pid 2>/dev/null; do
+      percent=$(( (i * 100) / TOTAL ))
+      spin_char=${spin_chars:i%4:1}
+      printf "\r\e[1;36m🌐 Please wait... Setting up your VoidZero VPS | %d%%\e[0m" "$percent"
+      sleep 0.1
+    done
+
+    wait $pid
+    ((i++))
   done
+
+  printf "\r\e[1;36m🌐 Please wait... Setting up your VoidZero VPS ✔ 100%%\e[0m\n"
 }
 
-# Start spinner in background
-(
-  apt update -y &> /dev/null
-  apt upgrade -y &> /dev/null
-  apt install -y neofetch figlet lolcat &> /dev/null
-
-  rm -f /etc/motd
-  sed -i 's/^#*PrintMotd.*/PrintMotd yes/' /etc/ssh/sshd_config
-  systemctl restart ssh &> /dev/null
-  rm -f /etc/profile.d/voidzero-banner.sh
-
-  # Create the banner display script
+# Setup login banner
+create_banner_script() {
   cat << 'EOF' > /etc/profile.d/voidzero-banner.sh
 #!/bin/bash
 if [ -n "$SSH_CONNECTION" ]; then
@@ -44,7 +60,9 @@ fi
 EOF
 
   chmod +x /etc/profile.d/voidzero-banner.sh
-) & spinner
+}
 
-# Show finish message
-printf "\n\e[1;32m✅ VoidZero VPS banner setup complete!\e[0m\n"
+# Run full setup
+run_with_progress
+create_banner_script
+echo -e "\e[1;32m✅ VoidZero VPS banner setup complete!\e[0m"
