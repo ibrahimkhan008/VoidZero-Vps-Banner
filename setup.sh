@@ -51,7 +51,7 @@ if [ -n "$SSH_CONNECTION" ]; then
  ╚████╔╝ ╚██████╔╝██║██████╔╝███████╗███████╗██║  ██║╚██████╔╝ 
   ╚═══╝   ╚═════╝ ╚═╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝
 ART
-  echo -e "\e[1;32m🚀 Welcome to VoidZero VPS 🚀\e[0m"
+  echo -e "\e[1;32m🚀 Welcome to VoidZero VPS Service 🚀\e[0m"
   echo
   neofetch --color_blocks off --disable resolution wm theme icons font
   echo
