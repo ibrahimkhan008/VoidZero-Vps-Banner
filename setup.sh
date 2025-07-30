@@ -1,28 +1,33 @@
 #!/bin/bash
 
-# Update & install tools
-apt update -y
-apt install -y neofetch figlet lolcat
+# Function to show spinner while tasks run
+spinner() {
+  local pid=$!
+  local spin='-\|/'
+  local i=0
+  while kill -0 $pid 2>/dev/null; do
+    i=$(( (i+1) %4 ))
+    printf "\r\e[1;36m🌐 Please wait... Setting up your VoidZero VPS ${spin:$i:1} \e[0m"
+    sleep 0.1
+  done
+}
 
-# Disable old static MOTD
-rm -f /etc/motd
+# Start spinner in background
+(
+  apt update -y &> /dev/null
+  apt upgrade -y &> /dev/null
+  apt install -y neofetch figlet lolcat &> /dev/null
 
-# Make sure SSH will show the MOTD
-sed -i 's/^#*PrintMotd.*/PrintMotd yes/' /etc/ssh/sshd_config
-systemctl restart ssh
+  rm -f /etc/motd
+  sed -i 's/^#*PrintMotd.*/PrintMotd yes/' /etc/ssh/sshd_config
+  systemctl restart ssh &> /dev/null
+  rm -f /etc/profile.d/voidzero-banner.sh
 
-# Remove old banner script to ensure update
-rm -f /etc/profile.d/voidzero-banner.sh
-
-# Create custom MOTD script
-cat << 'EOF' > /etc/profile.d/voidzero-banner.sh
+  # Create the banner display script
+  cat << 'EOF' > /etc/profile.d/voidzero-banner.sh
 #!/bin/bash
-# This runs at every login shell
-
-# Only show if it's an SSH session
 if [ -n "$SSH_CONNECTION" ]; then
   clear
-
   cat << "ART" | lolcat
 ██╗   ██╗ ██████╗ ██╗██████╗ ███████╗███████╗██████╗  ██████╗
 ██║   ██║██╔═══██╗██║██╔══██╗╚══███╔╝██╔════╝██╔══██╗██╔═══██╗
@@ -31,7 +36,6 @@ if [ -n "$SSH_CONNECTION" ]; then
  ╚████╔╝ ╚██████╔╝██║██████╔╝███████╗███████╗██║  ██║╚██████╔╝
   ╚═══╝   ╚═════╝ ╚═╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝
 ART
-
   echo -e "\e[1;32m🚀 Welcome to VoidZero VPS Service 🚀\e[0m"
   echo
   neofetch --color_blocks off --disable resolution wm theme icons font
@@ -39,5 +43,8 @@ ART
 fi
 EOF
 
-# Make it executable
-chmod +x /etc/profile.d/voidzero-banner.sh
+  chmod +x /etc/profile.d/voidzero-banner.sh
+) & spinner
+
+# Show finish message
+printf "\n\e[1;32m✅ VoidZero VPS banner setup complete!\e[0m\n"
