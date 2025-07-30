@@ -4,8 +4,10 @@
 apt update -y
 apt install -y neofetch figlet lolcat
 
-# Remove old MOTD and ensure PrintMotd is enabled
+# Remove old static MOTD
 rm -f /etc/motd
+
+# Ensure PrintMotd is enabled in SSH config
 sed -i 's/^#*PrintMotd.*/PrintMotd yes/' /etc/ssh/sshd_config
 systemctl restart ssh
 
@@ -29,8 +31,11 @@ neofetch --color_blocks off --disable resolution wm theme icons font
 echo
 EOF
 
-# Make it executable
+# Make the custom MOTD script executable
 chmod +x /etc/update-motd.d/00-custom
 
-# Show MOTD immediately
+# Generate MOTD for current session
 run-parts /etc/update-motd.d/ > /run/motd.dynamic
+
+# Ensure /etc/motd points to the dynamic file (backward compatibility)
+ln -sf /run/motd.dynamic /etc/motd
