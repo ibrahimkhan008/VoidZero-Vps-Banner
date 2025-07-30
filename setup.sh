@@ -11,6 +11,9 @@ rm -f /etc/motd
 sed -i 's/^#*PrintMotd.*/PrintMotd yes/' /etc/ssh/sshd_config
 systemctl restart ssh
 
+# Remove old banner script to ensure update
+rm -f /etc/profile.d/voidzero-banner.sh
+
 # Create custom MOTD script
 cat << 'EOF' > /etc/profile.d/voidzero-banner.sh
 #!/bin/bash
