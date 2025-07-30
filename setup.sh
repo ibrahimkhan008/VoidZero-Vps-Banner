@@ -1,22 +1,26 @@
 #!/bin/bash
 
-# Update & install required tools
+# Update & install tools
 apt update -y
 apt install -y neofetch figlet lolcat
 
-# Disable static motd
+# Disable old static MOTD
 rm -f /etc/motd
 
-# Ensure SSH prints motd
+# Make sure SSH will show the MOTD
 sed -i 's/^#*PrintMotd.*/PrintMotd yes/' /etc/ssh/sshd_config
 systemctl restart ssh
 
-# Create custom motd script
-cat << 'EOF' > /etc/update-motd.d/00-custom
+# Create custom MOTD script
+cat << 'EOF' > /etc/profile.d/voidzero-banner.sh
 #!/bin/bash
-clear
+# This runs at every login shell
 
-cat << "ART" | lolcat
+# Only show if it's an SSH session
+if [ -n "$SSH_CONNECTION" ]; then
+  clear
+
+  cat << "ART" | lolcat
 ██╗   ██╗ ██████╗ ██╗██████╗ ███████╗███████╗██████╗  ██████╗
 ██║   ██║██╔═══██╗██║██╔══██╗╚══███╔╝██╔════╝██╔══██╗██╔═══██╗
 ██║   ██║██║   ██║██║██║  ██║  ███╔╝ █████╗  ██████╔╝██║   ██║
@@ -25,14 +29,12 @@ cat << "ART" | lolcat
   ╚═══╝   ╚═════╝ ╚═╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝
 ART
 
-echo -e "\e[1;32m🚀 Welcome to VoidZero VPS 🚀\e[0m"
-echo
-neofetch --color_blocks off --disable resolution wm theme icons font
-echo
+  echo -e "\e[1;32m🚀 Welcome to VoidZero VPS 🚀\e[0m"
+  echo
+  neofetch --color_blocks off --disable resolution wm theme icons font
+  echo
+fi
 EOF
 
-# Make script executable
-chmod +x /etc/update-motd.d/00-custom
-
-# OPTIONAL: Regenerate for current session (not needed on next SSH login)
-run-parts /etc/update-motd.d/ > /run/motd.dynamic
+# Make it executable
+chmod +x /etc/profile.d/voidzero-banner.sh
