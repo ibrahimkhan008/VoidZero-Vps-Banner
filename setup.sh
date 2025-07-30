@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 # Define setup steps
 STEPS=(
@@ -13,7 +13,7 @@ STEPS=(
 
 TOTAL=${#STEPS[@]}
 
-# Spinner with % in same line
+# Spinner + % display
 run_with_progress() {
   local i=0
   local percent=0
@@ -23,7 +23,6 @@ run_with_progress() {
     bash -c "$cmd" &
     pid=$!
 
-    # While command runs, show spinner and % on same line
     while kill -0 $pid 2>/dev/null; do
       percent=$(( (i * 100) / TOTAL ))
       spin_char=${spin_chars:i%4:1}
@@ -38,7 +37,7 @@ run_with_progress() {
   printf "\r\e[1;36m🌐 Please wait... Setting up your VoidZero VPS ✔ 100%%\e[0m\n"
 }
 
-# Setup login banner
+# Banner that shows on SSH login
 create_banner_script() {
   cat << 'EOF' > /etc/profile.d/voidzero-banner.sh
 #!/bin/bash
@@ -49,10 +48,10 @@ if [ -n "$SSH_CONNECTION" ]; then
 ██║   ██║██╔═══██╗██║██╔══██╗╚══███╔╝██╔════╝██╔══██╗██╔═══██╗
 ██║   ██║██║   ██║██║██║  ██║  ███╔╝ █████╗  ██████╔╝██║   ██║
 ╚██╗ ██╔╝██║   ██║██║██║  ██║ ███╔╝  ██╔══╝  ██╔══██╗██║   ██║
- ╚████╔╝ ╚██████╔╝██║██████╔╝███████╗███████╗██║  ██║╚██████╔╝
+ ╚████╔╝ ╚██████╔╝██║██████╔╝███████╗███████╗██║  ██║╚██████╔╝ 
   ╚═══╝   ╚═════╝ ╚═╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝
 ART
-  echo -e "\e[1;32m🚀 Welcome to VoidZero VPS Service 🚀\e[0m"
+  echo -e "\e[1;32m🚀 Welcome to VoidZero VPS 🚀\e[0m"
   echo
   neofetch --color_blocks off --disable resolution wm theme icons font
   echo
@@ -62,7 +61,12 @@ EOF
   chmod +x /etc/profile.d/voidzero-banner.sh
 }
 
-# Run full setup
+# Run it all
 run_with_progress
 create_banner_script
+
+# Final success message
 echo -e "\e[1;32m✅ VoidZero VPS banner setup complete!\e[0m"
+
+# Reload shell to avoid logout/login
+exec bash --login
