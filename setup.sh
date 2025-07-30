@@ -5,7 +5,7 @@ STEPS=(
   "apt update -y > /dev/null 2>&1"
   "DEBIAN_FRONTEND=noninteractive apt upgrade -yq > /dev/null 2>&1"
   "apt install -y neofetch figlet lolcat > /dev/null 2>&1"
-  "rm -f /etc/motd"
+  "echo '' > /etc/motd"
   "sed -i 's/^#*PrintMotd.*/PrintMotd yes/' /etc/ssh/sshd_config"
   "systemctl restart ssh > /dev/null 2>&1"
   "rm -f /etc/profile.d/voidzero-banner.sh"
